@@ -1,0 +1,125 @@
+# ============================================================
+# SERVIDOR A
+# Zabbix Server + Zabbix Web + MySQL + Grafana
+# Foco: performance, sem exposição externa
+# ============================================================
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  mysql-server:
+    image: mysql:8.0
+    container_name: zbx-mysql
+    restart: unless-stopped
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_bin
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=100
+      - --innodb-log-file-size=64M
+      # binlog desligado: reduz uso de disco (não precisamos de replicação)
+      - --skip-log-bin
+    environment:
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - monitoring
+    mem_limit: 512m
+    logging: *default-logging
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:alpine-7.0-latest
+    container_name: zbx-server
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: mysql-server
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      # --- Performance / baixo consumo ---
+      ZBX_CACHESIZE: 16M
+      ZBX_HISTORYCACHESIZE: 16M
+      ZBX_HISTORYINDEXCACHESIZE: 4M
+      ZBX_TRENDCACHESIZE: 8M
+      ZBX_VALUECACHESIZE: 8M
+      ZBX_STARTPOLLERS: 5
+      ZBX_STARTPINGERS: 3
+      # --- Housekeeper agressivo (roda a cada 1h, remove 5000 registros por vez) ---
+      ZBX_HOUSEKEEPINGFREQUENCY: 1
+      ZBX_MAXHOUSEKEEPERDELETE: 5000
+    depends_on:
+      - mysql-server
+    ports:
+      # IMPORTANTE: bind apenas na interface privada, nunca 0.0.0.0
+      - "${SERVER_A_PRIVATE_IP}:10051:10051"
+    networks:
+      - monitoring
+    mem_limit: 512m
+    logging: *default-logging
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-mysql:alpine-7.0-latest
+    container_name: zbx-web
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: mysql-server
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: America/Sao_Paulo
+    depends_on:
+      - zabbix-server
+    ports:
+      - "${SERVER_A_PRIVATE_IP}:8080:8080"
+    networks:
+      - monitoring
+    mem_limit: 256m
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: alexanderzobnin-zabbix-app 4.4.5
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    ports:
+      - "${SERVER_A_PRIVATE_IP}:3000:3000"
+    networks:
+      - monitoring
+    mem_limit: 256m
+    logging: *default-logging
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:alpine-7.0-latest
+    container_name: zbx-agent-a
+    restart: unless-stopped
+    environment:
+      ZBX_HOSTNAME: "Servidor A"
+      ZBX_SERVER_HOST: zabbix-server
+    volumes:
+      - /:/hostfs:ro
+    networks:
+      - monitoring
+    mem_limit: 64m
+    logging: *default-logging
+
+networks:
+  monitoring:
+    driver: bridge

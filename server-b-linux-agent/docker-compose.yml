@@ -1,0 +1,25 @@
+# ============================================================
+# SERVIDOR B
+# Zabbix Agent2 (modo ativo) — reporta métricas para o Servidor A
+# ============================================================
+
+services:
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:alpine-7.0-latest
+    container_name: zbx-agent-b
+    restart: unless-stopped
+    environment:
+      ZBX_HOSTNAME: "Servidor B"
+      ZBX_SERVER_HOST: "${SERVER_A_PRIVATE_IP}"        # quem tem permissão de falar com o agent
+      ZBX_ACTIVE_ALLOW: "true"
+      ZBX_SERVERACTIVE: "${SERVER_A_PRIVATE_IP}:10051" # para onde ele EMPURRA os dados (modo ativo)
+    volumes:
+      - /:/hostfs:ro
+    networks:
+      - default
+    mem_limit: 64m
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
