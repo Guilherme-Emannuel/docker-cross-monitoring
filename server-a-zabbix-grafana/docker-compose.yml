@@ -21,7 +21,7 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_bin
       - --innodb-buffer-pool-size=256M
-      - --max-connections=100
+      - --max-connections=50 # << era 100, reduzido (não precisamos de tanto pra 3 hosts)
       - --innodb-log-file-size=64M
       # binlog desligado: reduz uso de disco (não precisamos de replicação)
       - --skip-log-bin
@@ -34,7 +34,7 @@ services:
       - ./data/mysql:/var/lib/mysql
     networks:
       - monitoring
-    mem_limit: 512m
+    mem_limit: 1g
     logging: *default-logging
 
   zabbix-server:
