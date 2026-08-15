@@ -53,6 +53,9 @@ Docker Compose · Zabbix 7.0 LTS · Grafana · MySQL 8.0
 ├── grafana-dashboards/        # Dashboard Grafana pronto para importar
 │   ├── Painel_Monitoramento.json
 │   └── README.md               # passo a passo de import + troubleshooting
+├── scripts/                    # Utilitários reutilizáveis entre os 3 servidores
+│   ├── fix-vm-clock.sh         # corrige deriva de relógio em VMs (chrony)
+│   └── README.md
 └── webhooks/                   # Zabbix/Kuma → n8n (em construção, próxima etapa)
 ```
 
@@ -90,6 +93,27 @@ O arquivo em `grafana-dashboards/Painel_Monitoramento.json` é o painel completo
 - **Dashboard Grafana totalmente parametrizado** com variáveis do
   plugin Zabbix (`$group`/`$host`), eliminando qualquer host, IP ou
   grupo fixo — reutilizável por qualquer pessoa que importe o JSON
+- **MySQL sob pressão de memória**: com `mem_limit` de 512m, o container
+  ficava constantemente perto de 100% de uso mesmo com
+  `innodb-buffer-pool-size` travado em 256M — o teto não deixava espaço
+  pra overhead de conexões/buffers. Sintoma enganoso: falha intermitente
+  de login no Zabbix Web parecendo credencial errada. Corrigido subindo
+  o limite pra 1g e reduzindo `max-connections` de 100 pra 50
+- **Deriva de relógio em VM de laboratório**: `chronyd` detectou até ~5
+  dias de atraso após a VM ser pausada/retomada, mas ficou preso em
+  correção gradual (*slew*) por já ter passado da janela padrão de
+  `makestep` (só permite correção brusca nos primeiros ciclos após o
+  boot). Sintoma enganoso: painéis com range de tempo longo (3h+)
+  mostravam dado normal, só o range curto (1h) ficava em "No data", e a
+  fonte de dados do Grafana chegava a retornar "Unauthorized"
+  intermitente. Corrigido com `chronyc makestep` + ajuste permanente em
+  `chrony.conf` (script `scripts/fix-vm-clock.sh`)
+- **Delay de descoberta automática (LLD) de interface de rede**: os itens
+  `Interface eth0: Bits received/sent` não existem logo após cadastrar
+  um host — são criados por uma regra de descoberta com intervalo padrão
+  de 1h, do tipo "Zabbix agent (active)" (não pode ser forçada via
+  "Execute now" no Zabbix Web). Reduzir o "Update interval" da regra
+  "Network interface discovery" pra ~10min evita a espera
 
 ## Status do projeto
 
