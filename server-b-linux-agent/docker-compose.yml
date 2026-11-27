@@ -13,10 +13,14 @@ services:
       ZBX_SERVER_HOST: "${SERVER_A_PRIVATE_IP}"        # quem tem permissão de falar com o agent
       ZBX_ACTIVE_ALLOW: "true"
       ZBX_SERVERACTIVE: "${SERVER_A_PRIVATE_IP}:10051" # para onde ele EMPURRA os dados (modo ativo)
+    # Rede do host: sem isso o agent só enxerga a eth0 do próprio container,
+    # e o tráfego de rede medido é só o do container, não o do servidor.
+    # Em modo ativo o agent só faz conexões de saída, então nenhuma porta nova é aberta.
+    network_mode: host
     volumes:
-      - /:/hostfs:ro
-    networks:
-      - default
+      # rslave: propaga para o container os discos montados abaixo de / (ex.: /dados),
+      # senão a descoberta de filesystems só vê o disco raiz.
+      - /:/hostfs:ro,rslave
     mem_limit: 64m
     logging:
       driver: json-file

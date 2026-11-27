@@ -98,6 +98,10 @@ services:
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
     volumes:
+      # O Grafana roda como UID 472. Antes do primeiro "up", rode:
+      #   mkdir -p data/grafana && sudo chown -R 472:472 data/grafana
+      # senão o container entra em loop com "mkdir: can't create directory
+      # '/var/lib/grafana/plugins': Permission denied".
       - ./data/grafana:/var/lib/grafana
     ports:
       - "${SERVER_A_PRIVATE_IP}:3000:3000"

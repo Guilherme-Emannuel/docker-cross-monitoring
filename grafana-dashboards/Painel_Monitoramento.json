@@ -683,7 +683,7 @@
             "filter": "$host_c"
           },
           "item": {
-            "filter": "Uptime (WMI)"
+            "filter": "/^Uptime( \\(WMI\\))?$/"
           },
           "itemTag": {
             "filter": ""
@@ -1088,7 +1088,7 @@
             "filter": "$host_a"
           },
           "item": {
-            "filter": "Interface eth0: Bits received"
+            "filter": "/^Interface (eth|en)[^:]*: Bits received$/"
           },
           "itemTag": {
             "filter": ""
@@ -1160,7 +1160,7 @@
             "filter": "$host_a"
           },
           "item": {
-            "filter": "Interface eth0: Bits sent"
+            "filter": "/^Interface (eth|en)[^:]*: Bits sent$/"
           },
           "itemTag": {
             "filter": ""
@@ -1318,7 +1318,7 @@
             "filter": "$host_b"
           },
           "item": {
-            "filter": "Interface eth0: Bits received"
+            "filter": "/^Interface (eth|en)[^:]*: Bits received$/"
           },
           "itemTag": {
             "filter": ""
@@ -1390,7 +1390,7 @@
             "filter": "$host_b"
           },
           "item": {
-            "filter": "Interface eth0: Bits sent"
+            "filter": "/^Interface (eth|en)[^:]*: Bits sent$/"
           },
           "itemTag": {
             "filter": ""
@@ -1433,7 +1433,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${DS_ALEXANDERZOBNIN-ZABBIX-DATASOURCE}"
       },
-      "description": "Barra horizontal que mostra o armazenamento do servidor 33",
+      "description": "Barra horizontal que mostra o armazenamento do Servidor A ($host_a)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1785,7 +1785,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${DS_ALEXANDERZOBNIN-ZABBIX-DATASOURCE}"
       },
-      "description": "Barra horizontal que mostra o armazenamento do servidor 33",
+      "description": "Barra horizontal que mostra o armazenamento do Servidor C ($host_c)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2137,7 +2137,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${DS_ALEXANDERZOBNIN-ZABBIX-DATASOURCE}"
       },
-      "description": "Barra horizontal que mostra o armazenamento do servidor 24",
+      "description": "Barra horizontal que mostra o armazenamento do Servidor B ($host_b)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2479,7 +2479,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${DS_ALEXANDERZOBNIN-ZABBIX-DATASOURCE}"
       },
-      "description": "Barra horizontal que mostra o armazenamento do servidor 33",
+      "description": "Barra horizontal que mostra o armazenamento do Servidor C ($host_c)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2657,7 +2657,7 @@
             "filter": "$host_c"
           },
           "item": {
-            "filter": "FS [Novo volume(D:)]: Space: Used"
+            "filter": "/^FS \\[.*\\(D:\\)\\]: Space: Used$/"
           },
           "itemTag": {
             "filter": ""
@@ -2729,7 +2729,7 @@
             "filter": "$host_c"
           },
           "item": {
-            "filter": "FS [Novo volume(D:)]: Space: Total"
+            "filter": "/^FS \\[.*\\(D:\\)\\]: Space: Total$/"
           },
           "itemTag": {
             "filter": ""
@@ -2830,7 +2830,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${DS_ALEXANDERZOBNIN-ZABBIX-DATASOURCE}"
       },
-      "description": "Barra horizontal que mostra o armazenamento do servidor 24",
+      "description": "Barra horizontal que mostra o armazenamento do Servidor B ($host_b)",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -3172,7 +3172,7 @@
         "type": "alexanderzobnin-zabbix-datasource",
         "uid": "${DS_ALEXANDERZOBNIN-ZABBIX-DATASOURCE}"
       },
-      "description": "Barra horizontal que mostra o armazenamento do servidor 24",
+      "description": "Barra horizontal que mostra o armazenamento do Servidor B ($host_b)",
       "fieldConfig": {
         "defaults": {
           "color": {
