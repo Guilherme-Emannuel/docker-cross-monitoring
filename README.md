@@ -136,7 +136,7 @@ O arquivo em `grafana-dashboards/Painel_Monitoramento.json` é o painel completo
 - **Agent em container medindo a rede errada**: com o agent do Servidor B
   numa rede bridge do Docker, a descoberta só encontrava a `eth0` do
   container, então o tráfego exibido era o do container, não o do
-  servidor (e a placa real, ex. `enp3s0`, nunca aparecia). Corrigido com
+  servidor (e a placa real, ex. `ens*`/`enp*`, nunca aparecia). Corrigido com
   `network_mode: host`; o painel passou a aceitar qualquer nome de placa
   física (`eth*`/`en*`) por regex, ignorando `docker0`, `veth*` e `lo`
 - **Discos montados invisíveis para o agent**: com `/:/hostfs:ro`, as
