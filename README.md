@@ -66,8 +66,27 @@ Em cada servidor:
 ```bash
 cp .env.example .env
 # edite o .env com os valores reais do seu ambiente
+chmod 600 .env
 docker compose up -d
 ```
+
+No **Servidor A**, antes do primeiro `up`, dê a pasta de dados do Grafana
+ao usuário do container (UID 472):
+
+```bash
+mkdir -p data/grafana && sudo chown -R 472:472 data/grafana
+```
+
+Depois de subir, no Zabbix Web:
+
+- troque a senha padrão do `Admin`;
+- no host "Zabbix server", aponte a interface do agent para o DNS
+  `zbx-agent-a` (o nome do container), não `127.0.0.1`;
+- cadastre os hosts B e C com o **Host name igual ao `ZBX_HOSTNAME` /
+  `Hostname`** do agent (no modo ativo, nome diferente = dados recusados)
+  e a interface por **IP** (nomes de container de outro servidor não
+  resolvem no Servidor A);
+- crie um usuário só leitura para o Grafana, em vez de usar o `Admin`.
 
 Depois, rode o script de hardening correspondente (requer `ufw`):
 
@@ -114,6 +133,27 @@ O arquivo em `grafana-dashboards/Painel_Monitoramento.json` é o painel completo
   de 1h, do tipo "Zabbix agent (active)" (não pode ser forçada via
   "Execute now" no Zabbix Web). Reduzir o "Update interval" da regra
   "Network interface discovery" pra ~10min evita a espera
+- **Agent em container medindo a rede errada**: com o agent do Servidor B
+  numa rede bridge do Docker, a descoberta só encontrava a `eth0` do
+  container, então o tráfego exibido era o do container, não o do
+  servidor (e a placa real, ex. `enp3s0`, nunca aparecia). Corrigido com
+  `network_mode: host`; o painel passou a aceitar qualquer nome de placa
+  física (`eth*`/`en*`) por regex, ignorando `docker0`, `veth*` e `lo`
+- **Discos montados invisíveis para o agent**: com `/:/hostfs:ro`, as
+  montagens abaixo de `/` (ex. `/dados`) não apareciam dentro do
+  container. Corrigido com propagação `rslave` no volume
+- **Grafana em loop de restart na primeira subida**: a pasta
+  `data/grafana` é criada pelo root, mas o Grafana roda como UID 472.
+  Sintoma: `mkdir: can't create directory '/var/lib/grafana/plugins':
+  Permission denied`. Corrigido com `chown -R 472:472 data/grafana`
+- **Ícone ZBX amarelo em host Windows ativo**: itens do tipo "Zabbix
+  agent" (passivo) num host cujo agent só funciona em modo ativo fazem o
+  servidor tentar conectar na 10050 e marcar a interface passiva como
+  indisponível. Host em modo ativo deve ter só itens "Zabbix agent
+  (active)"
+- **Painel independente do nome dos itens**: uptime do Windows aceita o
+  item padrão `Uptime` ou o workaround `Uptime (WMI)`, e o disco `D:`
+  aceita qualquer rótulo de volume
 
 ## Status do projeto
 
